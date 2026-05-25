@@ -30,18 +30,33 @@ const posts = (await getCollection('blog')).sort(
         <ul class="space-y-0">
           {posts.map((post) => (
             <li>
-              <a href={`/blog/${post.id}/`} class="group flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-6 py-6 border-b border-[#1E2028] no-underline hover:border-[#A3E635] transition-colors">
-                <div class="flex flex-col gap-2">
-                  <span class="text-[#E8E4D8] group-hover:text-[#A3E635] transition-colors font-medium text-base leading-snug">
-                    {post.data.title}
+              <a
+                href={`/blog/${post.id}/`}
+                class="group block py-8 border-b border-[#1E2028] hover:border-[#A3E635] no-underline transition-colors"
+              >
+                <div class="flex items-start justify-between gap-6">
+                  <div class="flex-1 min-w-0 space-y-3">
+                    <h2 class="text-lg sm:text-xl font-semibold text-[#E8E4D8] group-hover:text-[#A3E635] transition-colors leading-snug">
+                      {post.data.title}
+                    </h2>
+                    {post.data.description && (
+                      <p class="text-sm text-[#9CA3AF] leading-relaxed">
+                        {post.data.description}
+                      </p>
+                    )}
+                    <div class="flex items-center gap-4 pt-1">
+                      {post.data.author && (
+                        <span class="font-mono text-xs text-[#6B7280]">{post.data.author}</span>
+                      )}
+                      <span class="font-mono text-xs text-[#4B5563]">
+                        <FormattedDate date={post.data.pubDate} />
+                      </span>
+                    </div>
+                  </div>
+                  <span class="shrink-0 mt-1 text-[#4B5563] group-hover:text-[#A3E635] transition-colors">
+                    &rarr;
                   </span>
-                  {post.data.description && (
-                    <span class="text-sm text-[#6B7280] leading-relaxed line-clamp-2">{post.data.description}</span>
-                  )}
                 </div>
-                <span class="font-mono text-xs text-[#6B7280] shrink-0 pt-0.5">
-                  <FormattedDate date={post.data.pubDate} />
-                </span>
               </a>
             </li>
           ))}
