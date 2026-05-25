@@ -2,47 +2,46 @@
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
-import { getCollection } from 'astro:content';
 import FormattedDate from '../components/FormattedDate.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import { getCollection } from 'astro:content';
 
 const posts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 ---
 
 <!doctype html>
 <html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-	</head>
-	<body>
-		<Header />
-		<main>
-			<section>
-				<p>
-					Engineering blog from <a href="https://github.com/Hexaxia-Labs">Hexaxia Labs</a> — the open
-					source arm of <a href="https://www.hexaxia.tech">Hexaxia Technologies</a>. Infrastructure
-					tooling, security baselines, and technical work built in the process of doing the actual job.
-				</p>
-			</section>
-			{posts.length === 0 ? (
-				<p>Posts coming soon.</p>
-			) : (
-				<ul>
-					{posts.map((post) => (
-						<li>
-							<a href={`/blog/${post.id}/`}>
-								<h4 class="title">{post.data.title}</h4>
-								<p class="date">
-									<FormattedDate date={post.data.pubDate} />
-								</p>
-							</a>
-						</li>
-					))}
-				</ul>
-			)}
-		</main>
-		<Footer />
-	</body>
+  <head>
+    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+  </head>
+  <body>
+    <Header />
+    <main class="mx-auto max-w-3xl px-6 py-16">
+      <section class="mb-16">
+        <p class="text-[#9CA3AF] text-base leading-relaxed max-w-xl">
+          Engineering blog from <a href="https://github.com/Hexaxia-Labs" class="text-[#A3E635] hover:text-[#BEF264] transition-colors no-underline">Hexaxia Labs</a> — the open source arm of the <a href="https://www.hexaxia.tech" class="text-[#A3E635] hover:text-[#BEF264] transition-colors no-underline">Hexaxia group</a>. Infrastructure tooling, security baselines, and technical work built in the process of doing the actual job.
+        </p>
+      </section>
+
+      {posts.length === 0 ? (
+        <p class="text-[#6B7280] font-mono text-sm">Posts coming soon.</p>
+      ) : (
+        <ul class="space-y-px">
+          {posts.map((post) => (
+            <li>
+              <a href={`/blog/${post.id}/`} class="group flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-6 py-5 border-b border-[#1E2028] no-underline hover:border-[#A3E635] transition-colors">
+                <span class="text-[#E8E4D8] group-hover:text-[#A3E635] transition-colors font-medium leading-snug">{post.data.title}</span>
+                <span class="font-mono text-xs text-[#6B7280] shrink-0">
+                  <FormattedDate date={post.data.pubDate} />
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </main>
+    <Footer />
+  </body>
 </html>
