@@ -7,12 +7,45 @@ import Header from '../components/Header.astro';
 
 type Props = CollectionEntry<'blog'>['data'];
 
-const { title, description, pubDate, updatedDate } = Astro.props;
+const { title, description, pubDate, updatedDate, author } = Astro.props;
+
+const pageUrl = Astro.url.href;
+const datePublished = new Date(pubDate).toISOString();
+const dateModified = updatedDate ? new Date(updatedDate).toISOString() : datePublished;
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: title,
+  description: description,
+  url: pageUrl,
+  datePublished,
+  dateModified,
+  author: {
+    '@type': 'Person',
+    name: 'Aaron Lamb',
+    url: 'https://alamb-hex.github.io',
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'Hexaxia Labs',
+    url: 'https://labs.hexaxia.tech',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'https://www.hexaxia.tech/images/hexaxia_logo_3.webp',
+    },
+  },
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': pageUrl,
+  },
+};
 ---
 
 <html lang="en">
   <head>
     <BaseHead title={title} description={description} />
+    <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
   </head>
   <body>
     <Header />
