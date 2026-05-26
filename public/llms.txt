@@ -1,0 +1,34 @@
+# Hexaxia Labs
+
+> Hexaxia Labs is the open source arm of the Hexaxia Group. The work that comes out of doing managed IT and security at Hexaxia Technologies and building AI infrastructure at Hexaxia AI goes here when it is general enough to be useful elsewhere. Not a community-building exercise. Just the tools that solved a problem worth sharing.
+
+Labs publishes software, technical writeups, and security baselines under permissive or copyleft licenses depending on the project. Three projects are actively shipping (HexOps, HexCMS Studio with HexCMS underneath, and 389DS SRG Baseline). The blog covers what we are building, the decisions behind it, and what did not go as expected.
+
+## Projects
+
+- [HexOps](https://github.com/Hexaxia-Labs/hexops): A developer operations dashboard for engineers managing many local projects at once. Concurrent vulnerability scanning, batch patching, transitive dependency override management, post-patch audit, collateral-downgrade flagging, and a 16-rule grep-based code security scanner. Integrates OWASP CVE Lite as the third scan source. MIT license, v0.13.0+.
+- [HexCMS Studio](https://github.com/alamb-hex/hexcms-studio): A local visual editor for git-based content. WYSIWYG and raw markdown, frontmatter editor, live preview, stage and commit and push from the UI, multi-repository support. MIT license, v0.2.0.
+- [HexCMS](https://github.com/Hexaxia-Labs/hexcms): The git-based headless CMS underneath HexCMS Studio. Content lives in your repository as markdown files with frontmatter. No database, no vendor lock-in, no SaaS subscription. AGPL-3.0, in development.
+- [389DS SRG Baseline](https://labs.hexaxia.tech/389ds-srg-baseline/): A machine-consumable hardening catalog for 389 Directory Server. 43 NIST 800-53 and DISA SRG-mapped controls across 9 domains. Schema-first markdown source of truth. Applies to 389DS directly, Red Hat Directory Server, and Red Hat Identity Management. GPL-3.0, v0.1.0-alpha.
+
+## Blog
+
+- [The postcss That Would Not Die, and How CVE Lite Ended My Override Grind](https://labs.hexaxia.tech/blog/hexops-cve-lite-integration/): A Next.js dependency footgun, a year of hand-managing npm overrides, and how OWASP CVE Lite became the third scan source in HexOps as a local-first source of truth for dependency remediation.
+- [389DS SRG Baseline: A Machine-Consumable Hardening Catalog for 389 Directory Server](https://labs.hexaxia.tech/blog/389ds-srg-baseline-release/): The release writeup for 389DS SRG Baseline. 43 controls mapped to NIST 800-53 and DISA SRG. Schema-first by design. Honest about being alpha. Validation help wanted.
+- [Hexaxia Labs: What This Is and Why It Exists](https://labs.hexaxia.tech/blog/hexaxia-labs-what-this-is-and-why-it-exists/): The intro post. Why Labs exists as a Group-level surface, what is shipping right now, and how we decide what to open source.
+
+## About
+
+- [About Hexaxia Labs](https://labs.hexaxia.tech/about/): Operating posture, project breakdown, criteria for what gets open sourced, contributing guide, and how to get in touch for non-OSS engagements.
+
+## Related properties
+
+- [Hexaxia Group](https://www.hexaxia.com): The umbrella over Hexaxia Technologies, Hexaxia AI, Hexaxia Media, Hexaxia Consulting, and Hexaxia Labs.
+- [Hexaxia Technologies](https://www.hexaxia.tech): Managed IT, infrastructure, and security consulting. Source of the production environments that produce most of the Labs work.
+- [Hexaxia AI](https://www.hexaxia.ai): AI products and Fractional CAIO engagements. Source of the AI infrastructure work that lands in Labs.
+- [Hexaxia Media](https://www.hexaxia.media): Creative and media production for the group.
+
+## Source code
+
+- [github.com/Hexaxia-Labs](https://github.com/Hexaxia-Labs): The GitHub organization. All Labs project source lives here.
+- [Aaron Lamb on GitHub](https://github.com/alamb-hex): Author of the projects and writeups. Co-Founder, Hexaxia Technologies.
