@@ -1,7 +1,7 @@
 ---
 title: 'Hexaxia Labs: What This Is and Why It Exists'
-description: 'Labs is where the open source work from across the Hexaxia group lives. HexOps, HexCMS Studio, 389DS SRG Baseline, and what comes next.'
-pubDate: '2026-05-25'
+description: 'Labs is where the open source work from across the Hexaxia Group lives. HexOps, HexCMS Studio, 389DS SRG Baseline, and what comes next.'
+pubDate: '2026-05-25T17:17:00-04:00'
 author: 'Aaron Lamb, Hexaxia Labs'
 ---
 

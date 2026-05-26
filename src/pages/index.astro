@@ -19,23 +19,42 @@ const posts = (await getCollection('blog')).sort(
   <body>
     <Header />
     <main class="mx-auto max-w-3xl px-6 py-16">
-      <section class="mb-16">
+      <section class="mb-12 pb-8 border-b border-[#1E2028]">
         <p class="text-[#9CA3AF] text-base leading-relaxed max-w-xl">
-          Engineering blog from <a href="https://github.com/Hexaxia-Labs" class="text-[#A3E635] hover:text-[#BEF264] transition-colors no-underline">Hexaxia Labs</a> — the open source arm of the <a href="https://www.hexaxia.tech" class="text-[#A3E635] hover:text-[#BEF264] transition-colors no-underline">Hexaxia group</a>. Infrastructure tooling, security baselines, and technical work built in the process of doing the actual job.
+          Engineering blog from <a href="https://github.com/Hexaxia-Labs" class="text-[#A3E635] hover:text-[#BEF264] transition-colors no-underline">Hexaxia Labs</a>, the open source arm of the <a href="https://www.hexaxia.com" class="text-[#A3E635] hover:text-[#BEF264] transition-colors no-underline">Hexaxia Group</a>. Infrastructure tooling, security baselines, and technical work built in the process of doing the actual job.
         </p>
       </section>
 
       {posts.length === 0 ? (
         <p class="text-[#6B7280] font-mono text-sm">Posts coming soon.</p>
       ) : (
-        <ul class="space-y-px">
+        <ul class="space-y-0">
           {posts.map((post) => (
             <li>
-              <a href={`/blog/${post.id}/`} class="group flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-6 py-5 border-b border-[#1E2028] no-underline hover:border-[#A3E635] transition-colors">
-                <span class="text-[#E8E4D8] group-hover:text-[#A3E635] transition-colors font-medium leading-snug">{post.data.title}</span>
-                <span class="font-mono text-xs text-[#6B7280] shrink-0">
-                  <FormattedDate date={post.data.pubDate} />
-                </span>
+              <a
+                href={`/blog/${post.id}/`}
+                class="group block py-8 border-b border-[#1E2028] hover:border-[#A3E635] no-underline transition-colors"
+              >
+                <div class="flex items-start justify-between gap-6">
+                  <div class="flex-1 min-w-0 space-y-3">
+                    <h2 class="text-lg sm:text-xl font-semibold text-[#E8E4D8] group-hover:text-[#A3E635] transition-colors leading-snug">
+                      {post.data.title}
+                    </h2>
+                    {post.data.description && (
+                      <p class="text-sm text-[#9CA3AF] leading-relaxed">
+                        {post.data.description}
+                      </p>
+                    )}
+                    <div class="flex items-center gap-4 pt-1">
+                      <span class="font-mono text-xs text-[#4B5563]">
+                        <FormattedDate date={post.data.pubDate} />
+                      </span>
+                    </div>
+                  </div>
+                  <span class="shrink-0 mt-1 text-[#4B5563] group-hover:text-[#A3E635] transition-colors">
+                    &rarr;
+                  </span>
+                </div>
               </a>
             </li>
           ))}

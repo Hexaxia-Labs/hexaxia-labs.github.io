@@ -1,7 +1,7 @@
 ---
 title: '389DS SRG Baseline: A Machine-Consumable Hardening Catalog for 389 Directory Server'
 description: '43 NIST 800-53 and DISA SRG-mapped controls for 389 Directory Server. Machine-consumable, schema-first, and applicable to RHDS and Red Hat IDM. Alpha, honest about it.'
-pubDate: '2026-05-25'
+pubDate: '2026-05-25T17:23:00-04:00'
 author: 'Aaron Lamb, Hexaxia Labs'
 ---
 

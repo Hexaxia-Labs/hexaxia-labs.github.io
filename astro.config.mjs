@@ -11,6 +11,11 @@ export default defineConfig({
   site: 'https://labs.hexaxia.tech',
   integrations: [mdx(), sitemap()],
 
+  // The blog index lives at the site root; keep the old /blog path working.
+  redirects: {
+    '/blog': '/',
+  },
+
   fonts: [
       {
           provider: fontProviders.local(),
