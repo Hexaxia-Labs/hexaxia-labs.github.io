@@ -10,7 +10,7 @@
   --color-accent: #A3E635;
   --color-accent-hover: #BEF264;
 
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter, 'Inter', ui-sans-serif, system-ui, sans-serif);
   --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
 }
 

@@ -17,29 +17,17 @@ export default defineConfig({
   },
 
   fonts: [
-      {
-          provider: fontProviders.local(),
-          name: 'Atkinson',
-          cssVariable: '--font-atkinson',
-          fallbacks: ['sans-serif'],
-          options: {
-              variants: [
-                  {
-                      src: ['./src/assets/fonts/atkinson-regular.woff'],
-                      weight: 400,
-                      style: 'normal',
-                      display: 'swap',
-                  },
-                  {
-                      src: ['./src/assets/fonts/atkinson-bold.woff'],
-                      weight: 700,
-                      style: 'normal',
-                      display: 'swap',
-                  },
-              ],
-          },
-      },
-	],
+    {
+      provider: fontProviders.google(),
+      name: 'Inter',
+      cssVariable: '--font-inter',
+      weights: [300, 400, 600],
+      styles: ['normal'],
+      subsets: ['latin', 'latin-ext', 'greek'],
+      fallbacks: ['ui-sans-serif', 'system-ui', 'sans-serif'],
+      display: 'swap',
+    },
+  ],
 
   vite: {
     plugins: [tailwindcss()],
