@@ -39,8 +39,88 @@ import Footer from '../components/Footer.astro';
           When something is general enough to be useful outside our own operation,
           we open source it.
         </p>
+
+        <h2 id="projects">What is shipping right now</h2>
+
         <p>
-          Projects live at <a href="https://github.com/Hexaxia-Labs">github.com/Hexaxia-Labs</a>.
+          <strong><a href="https://github.com/Hexaxia-Labs/hexops">HexOps</a></strong>.
+          A developer operations dashboard for engineers who manage a lot of
+          projects at once. When a CVE drops and fifteen repos need patching,
+          HexOps handles concurrent scanning, batch patches, post-patch audits,
+          transitive dependency overrides, and collateral-downgrade flagging
+          from one interface. Includes a code security scanner with sixteen
+          grep-based rules for hardcoded secrets, command injection, weak
+          crypto, and common misconfigurations. MIT license.
+        </p>
+
+        <p>
+          <strong><a href="https://github.com/alamb-hex/hexcms-studio">HexCMS Studio</a></strong>.
+          A local visual editor for git-based content. WYSIWYG and raw markdown
+          modes, frontmatter editor, live preview, git integration that lets you
+          stage, commit, push, and pull without leaving the UI. Multi-repository
+          support. MIT license.
+          <a href="https://github.com/Hexaxia-Labs/hexcms"><strong>HexCMS</strong></a>,
+          the git-based headless CMS underneath, is in development on AGPL-3.0.
+        </p>
+
+        <p>
+          <strong><a href="https://labs.hexaxia.tech/389ds-srg-baseline/">389DS SRG Baseline</a></strong>.
+          A machine-consumable hardening catalog for 389 Directory Server.
+          Forty-three NIST 800-53 and DISA SRG-mapped controls across nine
+          domains. Schema-first markdown source of truth: documentation site
+          renders from the frontmatter, and future phases generate Bash audit
+          scripts, Ansible roles, and OpenSCAP XCCDF content from the same
+          files. Applies to 389DS directly, Red Hat Directory Server, and
+          Red Hat Identity Management. v0.1.0-alpha. GPL-3.0.
+        </p>
+
+        <h2 id="how-we-choose">How we decide what to open source</h2>
+
+        <p>
+          The bar is simple. Did this solve a real problem in our own work?
+          Could it solve the same problem somewhere else without us having to
+          be in the loop? Is the code something we are willing to defend?
+          If yes to all three, it goes here. If no, it stays internal.
+        </p>
+
+        <p>
+          We do not open source for community-building, social proof, or
+          contribution metrics. We open source because keeping useful tools
+          private is a waste when the gap they fill is general.
+        </p>
+
+        <h2 id="contributing">Contributing</h2>
+
+        <p>
+          Pull requests are welcome on every active project. Issues are how
+          most conversations start. If you are not ready to open a PR but
+          want to flag a problem or propose an approach, open an issue and
+          start the discussion. The contribution guide and code-of-conduct
+          live in each repo.
+        </p>
+
+        <p>
+          389DS SRG Baseline in particular needs validation testing from
+          people who run 389DS, RHDS, or Red Hat IDM in production. If that
+          is you, running a control's check command against your real instance
+          and reporting the result back is the contribution this project needs
+          most right now.
+        </p>
+
+        <h2 id="contact">Get in touch</h2>
+
+        <p>
+          The fastest path is opening an issue on the relevant repo at
+          <a href="https://github.com/Hexaxia-Labs">github.com/Hexaxia-Labs</a>.
+          For broader questions about the Hexaxia Group or for engagements
+          that fall outside open source, the operating companies are the right
+          door:
+          <a href="https://www.hexaxia.tech">hexaxia.tech</a> for managed IT
+          and infrastructure work,
+          <a href="https://www.hexaxia.ai">hexaxia.ai</a> for AI engagements
+          and products,
+          <a href="https://www.hexaxia.media">hexaxia.media</a> for creative
+          and media work.
         </p>
       </div>
     </main>

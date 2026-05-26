@@ -21,10 +21,22 @@ const articleSchema = {
   url: pageUrl,
   datePublished,
   dateModified,
+  inLanguage: 'en-US',
   author: {
     '@type': 'Person',
     name: 'Aaron Lamb',
-    url: 'https://alamb-hex.github.io',
+    url: 'https://github.com/alamb-hex',
+    sameAs: [
+      'https://github.com/alamb-hex',
+      'https://github.com/Hexaxia-Labs',
+      'https://www.hexaxia.tech',
+    ],
+    jobTitle: 'Co-Founder, Hexaxia Technologies',
+    worksFor: {
+      '@type': 'Organization',
+      name: 'Hexaxia Technologies',
+      url: 'https://www.hexaxia.tech',
+    },
   },
   publisher: {
     '@type': 'Organization',
@@ -38,6 +50,10 @@ const articleSchema = {
   mainEntityOfPage: {
     '@type': 'WebPage',
     '@id': pageUrl,
+  },
+  speakable: {
+    '@type': 'SpeakableSpecification',
+    cssSelector: ['.post-title', '.post-description'],
   },
 };
 ---
@@ -58,9 +74,9 @@ const articleSchema = {
               <span class="ml-3 text-[#4B5563]">Updated <FormattedDate date={updatedDate} /></span>
             )}
           </div>
-          <h1 class="text-2xl sm:text-3xl font-semibold text-[#E8E4D8] leading-snug tracking-tight">{title}</h1>
+          <h1 class="post-title text-2xl sm:text-3xl font-semibold text-[#E8E4D8] leading-snug tracking-tight">{title}</h1>
           {description && (
-            <p class="mt-4 text-[#9CA3AF] text-base leading-relaxed">{description}</p>
+            <p class="post-description mt-4 text-[#9CA3AF] text-base leading-relaxed">{description}</p>
           )}
         </header>
         <div class="prose">
