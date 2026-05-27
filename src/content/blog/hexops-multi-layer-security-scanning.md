@@ -15,14 +15,23 @@ This is what we learned getting there.
 
 ## Three scanners, three fields of view
 
-A single scanner has a single field of view. Different scanners have different fields of view by design. Picking only one means accepting the blind spots of one.
+A single scanner has a single field of view. Different scanners have different fields of view by design. Picking only one means accepting the blind spots of one. The HexOps stack runs three scanners against the same project, in parallel, plus a fourth tool that does something the others cannot.
 
-| Scanner | Reads | Looks for | Covers | Misses |
-|---|---|---|---|---|
-| **pnpm audit** | `pnpm-lock.yaml` | Package versions in npm advisory DB | First-party npm vuln coverage maintained by GitHub | Anything not in the npm advisory DB; non-npm artifacts; embedded binaries |
-| **cve-lite** | `pnpm-lock.yaml` or `package-lock.json` | Package versions in OSV (multi-ecosystem advisory DB) | Cross-ecosystem npm coverage; sometimes catches things npm advisory has not ingested yet | Same blind spot as pnpm-audit for non-lockfile content |
-| **grype** | The filesystem (recursively walks `node_modules` and beyond, using Syft to identify all package types) | NVD plus GHSA plus OSV across all ecosystems Syft recognizes (npm, Go, Python, Rust, Java, Ruby, and more) | Embedded binaries; vendored libraries; multi-ecosystem npm packages that ship native modules; container-style scans | Nothing on lockfile correlation: finds stuff in binaries it cannot trace back to a lockfile entry |
-| **Aikido Safe Chain** | Outgoing install requests to the package registry | Malicious packages (typosquats, recently compromised maintainers, known-bad) using Aikido's threat intel | Active-attack supply-chain threats: a different threat model entirely | Existing installed vulnerabilities; does not scan, intercepts |
+### pnpm audit
+
+Reads `pnpm-lock.yaml`. Looks up each package version in the npm advisory database, the first-party advisory feed maintained by GitHub. Catches anything in that database. Misses anything outside it: non-npm artifacts, embedded binaries, and CVEs that have not been ingested into the npm advisory DB yet.
+
+### cve-lite
+
+Reads `pnpm-lock.yaml` or `package-lock.json`. Looks up each package version against [OSV](https://osv.dev), the open multi-ecosystem advisory database. Same surface as pnpm audit but a different upstream feed, so it sometimes catches things the npm advisory DB has not ingested yet. Same blind spot as pnpm audit for anything not in a lockfile.
+
+### grype
+
+Reads the filesystem. Recursively walks `node_modules` and beyond, uses Syft to identify every package type it finds (npm, Go, Python, Rust, Java, Ruby, more), and matches each against NVD plus GHSA plus OSV. Catches embedded binaries, vendored libraries, multi-ecosystem npm packages that ship native modules, and container layers if pointed at an image. The trade: it cannot correlate a finding back to a lockfile choice. It just reports what it found on disk.
+
+### Aikido Safe Chain (install gate, not a scanner)
+
+Intercepts outgoing install requests to the package registry. Looks up the request against Aikido's threat intel and blocks malicious packages: typosquats, recently compromised maintainers, known-bad. Different threat model entirely: active supply-chain attack, not existing installed vulnerabilities. It does not scan, it intercepts.
 
 The lockfile scanners and the filesystem scanner are scanning different things. They are not redundant. Their disagreement is information.
 
@@ -167,126 +176,6 @@ The `SecurityException` model HexOps now uses:
 
 Exceptions are visually loud in the UI (amber section, exception count chip on the collapsed project row) because accepted risk should be obvious, not hidden. A reviewer needs to be able to see at a glance "this project has three accepted-risk items" before approving anything else about it.
 
-## Logging is the load-bearing primitive
-
-A security tool that mutates code or state without leaving a trail is worse than no security tool. The reason is concrete, not abstract. Three failure modes appear the moment the trail is missing:
-
-- **Compliance failure.** SOC 2, ISO 27001, HIPAA, FedRAMP, and every other framework that touches software security requires that "changes affecting security-relevant configuration" are logged with who, when, what, why, and what was the outcome. A tool that applies vulnerability fixes without producing that record makes its operators unable to attest to those controls. The auditor does not accept "we use HexOps, it is secure." They ask "show me the change log for every vulnerability remediation in the last quarter."
-- **Incident-response failure.** When a production incident traces back to a recent dependency change, the question is "what did we touch?" If the answer is "I think someone applied a fix to esbuild last Tuesday but I am not sure exactly what changed or whether it worked," that is an incident-response failure on top of the original incident. The investigation reconstructs intent from git logs plus memory plus Slack scrollback. That is slow, error-prone, and traumatic.
-- **Accountability failure.** Without a log, "who applied this fix" cannot be answered. In a single-user dev environment, this is academic. In any multi-operator team, accountability requires a trail. Otherwise the question "did we know about this CVE when we deployed?" cannot be answered, which means liability cannot be apportioned, which means lessons cannot be learned and applied to process.
-
-This is why the HexOps logging is the deepest architectural commitment in the security stack. Every other piece of state (the merged findings cache, the exceptions file, the finding-states index) can be regenerated from logs plus scanner re-runs. The log itself cannot be regenerated. It is the irreducible record.
-
-### Every Apply is a change-control event
-
-Before this work, HexOps logged the successful completion of an Apply (`security_remediation_applied` under the patches log category). That is not nothing, but it is incomplete. Failed Apply attempts left no trace. The intent (what was being attempted, with what parameters) was not logged before the install, only as part of the success record. There was no way to thread "the Apply at 14:32" to "the rescan at 14:34" to "the result the user saw at 14:35."
-
-The new model: every Apply gets a generated `attemptId` (for example, `rem_8f3a2b09…`). Every log event for that attempt carries the same `attemptId` in its meta. Grep the security log by attempt ID and you reconstruct the full lifecycle.
-
-```
-[14:32:01] remediation_initiated         attemptId=rem_abc123…
-                                          source=grype
-                                          parameters: {
-                                            packages: [{name: "@esbuild/linux-x64", from: "0.25.10", to: "latest"}],
-                                            advisoryIds: [CVE-2026-39820, ...],
-                                            severity: high,
-                                            fixViaOverride: false,
-                                          }
-
-[14:32:47] remediation_install_complete  attemptId=rem_abc123…
-                                          packages: [@esbuild/linux-x64]
-                                          installGate: { plugin: safe-chain, binOverride: aikido-pnpm }
-
-[14:33:42] remediation_completed         attemptId=rem_abc123…
-                                          outcome: {
-                                            status: unresolved,
-                                            previousFindingCount: 41,
-                                            currentFindingCount: 41,
-                                            findingsCovered: [CVE-2026-39820, ...41 keys...],
-                                            findingsResolved: [],
-                                            findingsRemaining: [CVE-2026-39820, ...41 keys...]
-                                          }
-```
-
-Both Apply paths in HexOps (the grype RemediationPanel and cve-lite's `applyOne` / `fixAll`) now flow through this same shape. The `attemptId` is generated client-side, threaded through `auditContext.attemptId` to `/update` or `/api/security/cve-lite/[id]/fix`, and the final outcome is posted to `/api/projects/[id]/security/remediation/[attemptId]/complete` after the verify phase. One logging contract, two remediation paths, no orphan paths.
-
-Failures get the same treatment. `remediation_install_failed` if the install errored. `remediation_completed` with `outcome.status: 'error'` if the rescan or verify threw. A clean audit log is one where every `remediation_initiated` has a matching `remediation_completed` or `remediation_install_failed` downstream. Orphan `initiated` events without resolution are the things you investigate.
-
-The dialog surfaces the tracking ID in the outcome panel so the user has a change-control reference to cite in an incident report or a compliance audit.
-
-### Why naive logging falls short
-
-There is a tempting middle-ground design: just log the result of each Apply. "Hey, esbuild was bumped to 0.25.12 on May 27 at 14:32." That is a log entry. It is not audit-grade. Four things it hides:
-
-- **It hides intent.** The user clicked Apply intending to resolve 41 CVEs. The bump happened correctly. But the bump did not resolve the CVEs (the Go binary case). A naive log shows "esbuild bumped" and an auditor reading it would think the fix worked. A change-control log shows "intent: resolve 41 CVEs; outcome: 0 resolved; status: unresolved" and they see the truth.
-- **It hides failure.** A naive log only fires on success. Failed Apply attempts leave no trace. An attacker who deliberately tries to apply something malicious and gets blocked is invisible. A change-control log fires on both `remediation_initiated` (before anything happens) and `remediation_install_failed` (when it goes wrong), so the trail captures attempts even when they do not succeed.
-- **It hides parameters.** A naive log says "esbuild bumped to 0.25.12." A change-control log says "esbuild bumped from 0.25.10 to 0.25.12 via direct install (not override), under audit context source=grype with advisories CVE-2026-39820 plus 40 others, severity=high." You can answer "what versions transitioned" or "did we use an override pin" without rerunning the analysis.
-- **It hides correlation.** Naive logging makes it hard to thread "the apply at 14:32" to "the rescan at 14:33" to "the finding that disappeared at 14:34." You are correlating timestamps and hoping nothing else ran in those windows. The `attemptId` makes it one grep.
-
-Naive logging answers "did something happen?" Change-control logging answers "what was the full lifecycle of this specific decision?" Those are different questions, and only the second one is audit-grade.
-
-### Four events, none redundant
-
-Every Apply produces up to four log events. None is duplicative.
-
-```
-remediation_initiated  →  remediation_install_complete  →  remediation_completed
-                                       OR
-                          remediation_install_failed
-```
-
-**`remediation_initiated`** fires before the install runs, with the full parameters. This is the intent record. It exists even if the install never executes (network failure, server crash, kill switch flipped). Without it, you cannot detect attempted-but-never-executed Apply operations: operations that timed out, operations the server crashed during, operations where the user clicked Apply but the API never received the request. The initiated event is also the only one that captures the full input; subsequent events reference it by attemptId but do not duplicate the parameters.
-
-**`remediation_install_complete`** or **`remediation_install_failed`** fires when the install pipeline reaches a terminal state. This is the execution record. Distinct from intent because the install might run with different parameters than intended (lockfile reconciliation forces a different version), might fail partway through having mutated some state but not others, or might invoke an install-gate plugin (Safe Chain) that blocks specific packages and requires different downstream interpretation. This event captures what actually happened on the server, distinct from what the user asked for.
-
-**`remediation_completed`** fires after the post-install rescan and verify complete. This is the outcome record. The key insight: an Apply that succeeds at the install layer can still fail at the outcome layer (the hexmetrics esbuild case again). Or partially succeed. The outcome event is the only place that distinguishes these. Without it, the audit log shows "successful install" but cannot answer "did the fix resolve the vulnerabilities?" That is the question an auditor or post-mortem investigator most cares about.
-
-### What attemptId threading lets you query
-
-Because every event for an Apply attempt shares the same `attemptId`, the log becomes queryable as a graph, not just a stream. Concrete operations the threading enables:
-
-- **"Show me every Apply attempt on this project last week."** Grep `remediation_initiated` filtered by date, then for each match grep the same attemptId across the rest of the log to assemble the lifecycle.
-- **"Show me every Apply attempt that failed."** Grep `remediation_initiated` for the intent set, grep `remediation_install_failed` for the failure set, the difference is "in-flight, abandoned, orphaned." Itself an interesting signal.
-- **"Show me every fix attempt that did not actually resolve findings."** Grep `remediation_completed.*"status":"unresolved"`. Directly answers "what fixes did we try that did not work?" Useful for engineering debrief (why?) and accountability (we tried, we documented, we filed exceptions).
-- **"Reconstruct the security state of this project at any point in time."** Replay `finding_detected` plus `finding_resolved` events up to a given timestamp. Lets you answer "what did we know about, when?" The central question of every post-mortem.
-- **"What is the time-to-remediate for critical findings on this project?"** Pair `finding_detected` events with their eventual `remediation_completed` events (matched by `findingsCovered` containing the dedupKey). Compute deltas. That is a real MTTR metric, derivable from the log, with no separate metrics infrastructure required.
-
-None of these are possible if the log entries do not share an ID. All of them are trivially possible because they do.
-
-### Finding lifecycle and the silent-disappearance problem
-
-Independent of Apply attempts, every scan emits `finding_detected`, `finding_redetected`, or `finding_resolved` events when the diff against the previous scan reveals new, returned, or vanished findings. Each event carries the dedupKey, severity, package, sources, and advisory IDs. The "first seen N days ago" chip on each finding row in the UI is derived from this index. Findings detected in the last twenty-four hours get a `new` chip.
-
-The problem this solves: **findings can vanish for reasons other than "we fixed them."** Concretely:
-
-- A scanner could stop detecting a CVE because its advisory data lags upstream
-- A scanner could fail silently (timeout, network glitch, cache corruption) and return fewer findings
-- A package could be removed entirely from the project: the vulnerability is gone but no fix was applied
-- A new version of a scanner could change its detection logic: same code, different finding set
-- A grype DB refresh could move CVEs around
-
-Without diff logging, all of these look identical to "successful remediation." A finding that was there yesterday is gone today, the dashboard shows zero, everyone celebrates, and three months later someone discovers that the vulnerable code is still in production. The scanner just stopped catching it.
-
-`finding_resolved` events let you correlate vanished findings with explicit remediation attempts. If a `finding_resolved` event fires within minutes of a `remediation_completed` event for the same dedupKey, you have high confidence the fix worked. If a `finding_resolved` event fires with no recent `remediation_completed` correlating to it, that is worth investigating. The finding silently disappeared.
-
-`finding_redetected` is the regression-alert pathway. A finding we thought was resolved is back. Why? Did the fix get reverted? Did the scanner change? Is the dep tree different on a different machine? The event itself does not answer; it raises the question that needs answering, in the same audit log that already contains the original detection and the original resolution.
-
-### The audit-log-as-source-of-truth principle
-
-The deepest design principle behind all of this is: **the log file is the source of truth for what has happened in the system, period.** Not the database. Not the in-memory state. Not the cache. The log.
-
-Every other piece of state in the security stack can be regenerated from logs plus scanner re-runs. The log is the irreducible record. This shapes design decisions in concrete ways:
-
-- Caches can be aggressively invalidated because re-deriving them from scans is the path. The log persists across invalidations.
-- Crashes and partial states do not lose audit information because the log is append-only and survives every other state's corruption.
-- Migration of derived state (such as exception schema changes) does not require log migration. The log is the contract.
-
-Practical consequence: never put information in the cache or in-memory state that does not also flow through the log. If it is not logged, it did not happen. For a security tool, that is an absolute statement.
-
-The cost of this discipline is rounding-error compared to the value. Each Apply generates 3 to 4 log entries at ~1KB each. A team applying 50 fixes per week generates ~10MB per year. Performance overhead is fire-and-forget through the existing `logger.info` machinery, no new IO patterns. Cognitive load on operators is zero (the logging is invisible until you want it). Compared to losing the ability to attest to compliance, respond to incidents, or apportion accountability, the trade is not close.
-
-This pattern is table stakes for established tools (Snyk, Dependabot, GitHub Advanced Security, Aikido, Mend all log every action against a tracked finding ID). The HexOps implementation deliberately patterns after how those tools log. What we are doing is bringing that pattern to a self-hosted, local-first dev tool that did not have it. HexOps users get the same auditability that enterprises get from Snyk, without sending their dependency data to a vendor.
-
 ## Two plugin tracks, two contracts
 
 The same session also introduced a two-track plugin architecture:
@@ -305,11 +194,12 @@ A security tool that is pleasant to use is a security tool that gets used. Most 
 - The scanners disagree. Tell the user why.
 - Not every finding is fixable. Say so, surface the alternative.
 - Suppressing a finding requires a tracked exception. Make filing one a click, not a chore.
-- Every Apply is a change-control event. Log it richly, surface the tracking ID, let the user cite it in incident reports.
 
 The result is a security tool that documents what is happening in your codebase instead of one that you fight with until you ignore it.
 
 The lockfile scanner says clean. Grype says forty-one. Both are right. The job of the tool is to make that clear, not hide it.
+
+The other half of this story is what the system does when you click Apply. The hexmetrics case is the bait: the Apply succeeds at the install layer, the CVEs persist anyway. How HexOps knows that, logs it, and lets you cite it in an incident report or compliance audit is a different architectural commitment with its own depth. That writeup is the follow-up post: [The Apply Succeeded. The CVEs Persisted. The Log Knew.](/blog/hexops-change-control-logging/)
 
 ---
 
