@@ -1,7 +1,7 @@
 ---
 title: 'The Apply Succeeded. The CVEs Persisted. The Log Knew.'
 description: 'A vulnerability remediation that succeeds at the install layer can fail at the outcome layer, and a security tool that does not distinguish these is lying to its operator. How HexOps logs every Apply as a change-control event with full attemptId-threaded lifecycle, why naive logging falls short, and the audit-log-as-source-of-truth principle behind it.'
-pubDate: '2026-05-30T12:00:00-04:00'
+pubDate: '2026-05-27T12:00:00-04:00'
 author: 'Aaron Lamb, Hexaxia Labs'
 ---
 
